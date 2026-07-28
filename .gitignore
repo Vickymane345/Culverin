@@ -4,6 +4,10 @@
 /node_modules
 /.pnp
 .pnp.*
+
+# leftover dependency trees from a failed install
+/nm_stale_a
+/node_modules_old_delete_me
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
@@ -39,3 +43,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# image fetch (scripts/fetch-images.mjs)
+# keep the backup local — it records the pre-fetch image paths for --revert
+lib/.image-backup.json

@@ -1,26 +1,120 @@
 @import "tailwindcss";
 
 :root {
+  /* Light retail palette — product photography carries the colour. */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1d1d1f;
+  --muted: #6e6e73;
+  --surface: #f5f5f7;
+  --surface-2: #fafafc;
+  --line: #d2d2d7;
+  --accent: #0066cc;
+  --accent-hover: #0055aa;
+  --accent-soft: #e8f1fb;
+  --success: #187a45;
+  --warning: #9a6b00;
+  --danger: #c0392b;
+
+  /* Inverted tokens, for the video hero and any deliberately dark band. */
+  --dark-bg: #0a0a0c;
+  --dark-fg: #f5f5f7;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-dark-bg: var(--dark-bg);
+  --color-dark-fg: var(--dark-fg);
+  --font-sans: var(--font-outfit);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: initial;
+  background: var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-outfit), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(0, 102, 204, 0.16);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Frosted bar over light content. */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+/* Same bar while it sits over the dark hero. */
+.glass-dark {
+  background: rgba(18, 18, 22, 0.55);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+
+/* Very soft tint — never a heavy gradient. */
+.mesh-bg {
+  background:
+    radial-gradient(50rem 30rem at 12% 0%, rgba(0, 102, 204, 0.045), transparent 60%),
+    radial-gradient(45rem 28rem at 92% 8%, rgba(0, 102, 204, 0.03), transparent 60%),
+    var(--background);
+}
+
+.section-alt {
+  background: var(--surface-2);
+}
+
+/* Product-photo backdrop: soft, neutral, keeps cut-outs from floating. */
+.product-canvas {
+  background: linear-gradient(160deg, #ffffff 0%, #f2f2f5 100%);
+}
+
+.card-shadow {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.card-shadow-hover {
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.06),
+    0 12px 32px rgba(0, 0, 0, 0.10);
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee { animation: none; }
 }

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000" role="img">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#fcfcfd"/><stop offset="100%" stop-color="#eeeff2"/>
+</linearGradient>
+<radialGradient id="glow" cx="50%" cy="36%" r="58%">
+<stop offset="0%" stop-color="#3c77dd" stop-opacity="0.10"/>
+<stop offset="100%" stop-color="#3c77dd" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="dev" x1="0.1" y1="0" x2="0.9" y2="1">
+<stop offset="0%" stop-color="#b0b6bf"/>
+<stop offset="42%" stop-color="#7b828e"/>
+<stop offset="100%" stop-color="#949ca8"/>
+</linearGradient>
+<linearGradient id="scr" x1="0" y1="0" x2="0.8" y2="1">
+<stop offset="0%" stop-color="#3e5f98"/>
+<stop offset="100%" stop-color="#223a62"/>
+</linearGradient>
+<linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#fff" stop-opacity="0.16"/>
+<stop offset="55%" stop-color="#fff" stop-opacity="0"/>
+</linearGradient>
+</defs>
+<rect width="800" height="1000" fill="url(#bg)"/>
+<rect width="800" height="1000" fill="url(#glow)"/>
+<g transform="translate(400 490)">
+<path d="M-200 60 v-90 a200 200 0 0 1 400 0 v90" fill="none" stroke="url(#dev)" stroke-width="46" stroke-linecap="round"/>
+<rect x="-268" y="30" width="136" height="230" rx="56" fill="url(#dev)"/>
+<rect x="132" y="30" width="136" height="230" rx="56" fill="url(#dev)"/>
+<rect x="-240" y="62" width="80" height="166" rx="40" fill="url(#scr)"/>
+<rect x="160" y="62" width="80" height="166" rx="40" fill="url(#scr)"/>
+<rect x="-268" y="30" width="136" height="230" rx="56" fill="url(#sheen)"/>
+</g>
+<ellipse cx="400" cy="880" rx="200" ry="22" fill="#000" opacity="0.10"/>
+</svg>
