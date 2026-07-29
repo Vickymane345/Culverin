@@ -106,6 +106,27 @@ body {
     0 12px 32px rgba(0, 0, 0, 0.10);
 }
 
+/*
+ * Depth layers for the 3D tilt cards.
+ *
+ * These live on wrapper elements, never on an element that also carries a
+ * Tailwind transform utility, because an inline/!important transform would
+ * silently replace it (that is how the card hover-zoom got killed once).
+ *
+ * Gated to fine pointers at tablet and up: on a touch screen there is no tilt,
+ * so translateZ would only magnify content by a couple of percent and risk
+ * clipping inside the card's overflow-hidden.
+ */
+@media (min-width: 768px) and (pointer: fine) {
+  .depth-sm { transform: translateZ(18px); }
+  .depth-md { transform: translateZ(28px); }
+  .depth-lg { transform: translateZ(46px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .depth-sm, .depth-md, .depth-lg { transform: none; }
+}
+
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }

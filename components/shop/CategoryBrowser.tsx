@@ -1,9 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 import type { Product } from "@/lib/catalog";
 import ProductCard from "./ProductCard";
 import { cn, formatNGN } from "@/lib/utils";
+
+gsap.registerPlugin(ScrollTrigger);
 
 type Sort = "featured" | "price-asc" | "price-desc" | "rating";
 
@@ -31,6 +36,7 @@ export default function CategoryBrowser({
   const [sort, setSort] = useState<Sort>("featured");
   const [query, setQuery] = useState("");
   const [openFilters, setOpenFilters] = useState(false);
+  const grid = useRef<HTMLDivElement>(null);
 
   const shown = useMemo(() => {
     let list = products.filter((p) => p.price <= maxPrice);
@@ -52,6 +58,54 @@ export default function CategoryBrowser({
     if (sort === "rating") sorted.sort((a, b) => b.rating - a.rating);
     return sorted;
   }, [products, activeBrands, maxPrice, sort, query]);
+
+  // ScrollTrigger.batch still creates a trigger per element, but it groups the
+  // callbacks so cards entering together animate as one staggered tween rather
+  // than 40 independent ones. That is the win here, not the trigger count.
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add("(min-width: 768px)", () => {
+        ScrollTrigger.batch("[data-product]", {
+          start: "top 94%",
+          onEnter: (batch) =>
+            gsap.fromTo(
+              batch,
+              { y: 64, rotateX: 18, z: -90, opacity: 0 },
+              {
+                y: 0,
+                rotateX: 0,
+                z: 0,
+                opacity: 1,
+                duration: 0.75,
+                ease: "power3.out",
+                stagger: { each: 0.07, from: "start" },
+                overwrite: true,
+              }
+            ),
+        });
+      });
+      mm.add("(max-width: 767px)", () => {
+        ScrollTrigger.batch("[data-product]", {
+          start: "top 96%",
+          onEnter: (batch) =>
+            gsap.fromTo(
+              batch,
+              { y: 26, opacity: 0 },
+              { y: 0, opacity: 1, duration: 0.5, ease: "power2.out", stagger: 0.05, overwrite: true }
+            ),
+        });
+      });
+    },
+    { scope: grid, dependencies: [] }
+  );
+
+  // Filtering changes the grid height and card positions, so trigger
+  // positions have to be recalculated. Cards added by a filter change have no
+  // inline transform, so they simply render visible rather than stuck hidden.
+  useGSAP(() => {
+    ScrollTrigger.refresh();
+  }, { dependencies: [shown.length] });
 
   function toggleBrand(b: string) {
     setActiveBrands((prev) =>
@@ -130,7 +184,7 @@ export default function CategoryBrowser({
   return (
     <div className="lg:grid lg:grid-cols-[15rem_1fr] lg:gap-10 xl:grid-cols-[16rem_1fr] xl:gap-12">
       <aside className="hidden lg:block">
-        <div className="sticky top-24">{filterPanel}</div>
+        <div className="sticky top-24 max-h-[calc(100svh-8rem)] overflow-y-auto pr-1">{filterPanel}</div>
       </aside>
 
       <div>
@@ -197,9 +251,15 @@ export default function CategoryBrowser({
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+          <div
+            ref={grid}
+            className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4"
+            style={{ perspective: "1400px" }}
+          >
             {shown.map((p) => (
-              <ProductCard key={p.slug} product={p} />
+              <div key={p.slug} data-product className="will-change-transform">
+                <ProductCard product={p} />
+              </div>
             ))}
           </div>
         )}

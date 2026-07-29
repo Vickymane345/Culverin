@@ -4,6 +4,7 @@ import Link from "next/link";
 import { products, getProduct, getCategory, related } from "@/lib/catalog";
 import ProductBuyPanel from "@/components/shop/ProductBuyPanel";
 import ProductCard from "@/components/shop/ProductCard";
+import ProductStage from "@/components/shop/ProductStage";
 import { Badge } from "@/components/ui/badge";
 
 export function generateStaticParams() {
@@ -52,13 +53,7 @@ export default async function ProductPage({
 
       <div className="grid gap-8 py-8 md:gap-12 lg:grid-cols-2 lg:gap-16 lg:py-16">
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <div className="overflow-hidden rounded-3xl border border-line product-canvas card-shadow">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="aspect-[4/5] w-full object-cover"
-            />
-          </div>
+          <ProductStage src={product.image} alt={product.name} />
         </div>
 
         <div>
