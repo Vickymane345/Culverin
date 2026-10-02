@@ -4,7 +4,11 @@ import Footer from "@/components/Footer";
 import ShopNav from "@/components/shop/ShopNav";
 
 export const metadata: Metadata = {
-  title: "Shop | Culverin Quantum Systems",
+  title: {
+    default: "Shop Phones, Laptops, Gaming & Solar",
+    template: "%s | Culverin Quantum Systems",
+  },
+  alternates: { canonical: "/shop" },
   description:
     "Buy iPhone, Samsung Galaxy, MacBook, Dell, HP and Lenovo laptops, tablets, audio, gaming gear and solar inverters in Nigeria.",
 };

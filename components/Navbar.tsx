@@ -4,18 +4,31 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useCart } from "@/components/shop/CartProvider";
+import { createClient } from "@/lib/supabase/client";
 
 const links = [
   { href: "/#home", label: "Home" },
   { href: "/shop", label: "Shop" },
   { href: "/about", label: "About Us" },
-  { href: "/#contact", label: "Contact" },
+  { href: "/repairs", label: "Repairs" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  const { count } = useCart();
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data }) => setSignedIn(Boolean(data.session)));
+    const { data } = supabase.auth.onAuthStateChange((_e, session) => setSignedIn(Boolean(session)));
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   // Only the landing page opens on the dark video hero.
   const overHero = pathname === "/" && !scrolled;
@@ -36,7 +49,7 @@ export default function Navbar() {
       <nav
         aria-label="Main"
         className={cn(
-          "rounded-full pl-5 pr-2 py-2 flex items-center gap-6 w-full max-w-3xl justify-between transition-colors duration-300",
+          "rounded-full pl-5 pr-2 py-2 flex items-center gap-6 w-full max-w-4xl justify-between transition-colors duration-300",
           overHero ? "glass-dark" : "glass"
         )}
       >
@@ -56,7 +69,7 @@ export default function Navbar() {
 
         <ul
           className={cn(
-            "hidden md:flex items-center gap-6 text-sm transition-colors",
+            "hidden lg:flex items-center gap-6 text-sm transition-colors",
             overHero ? "text-white/75" : "text-muted"
           )}
         >
@@ -77,7 +90,25 @@ export default function Navbar() {
 
         <div className="flex items-center gap-2">
           <Link
-            href="/signup"
+            href="/cart"
+            aria-label={`Bag, ${count} item${count === 1 ? "" : "s"}`}
+            className={cn(
+              "relative rounded-full p-2 transition-colors",
+              overHero ? "text-white hover:bg-white/10" : "text-foreground hover:bg-surface"
+            )}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 8h14l-1.2 11.1a2 2 0 0 1-2 1.9H8.2a2 2 0 0 1-2-1.9L5 8Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+              <path d="M9 8V6a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+            {count > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 grid min-w-[18px] place-items-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white">
+                {count}
+              </span>
+            )}
+          </Link>
+          <Link
+            href={signedIn ? "/dashboard" : "/signup"}
             className={cn(
               "rounded-full text-sm font-medium px-5 py-2 transition-colors whitespace-nowrap",
               overHero
@@ -85,7 +116,7 @@ export default function Navbar() {
                 : "bg-accent text-white hover:bg-accent-hover"
             )}
           >
-            Get Started
+            {signedIn ? "My account" : "Get Started"}
           </Link>
           <button
             type="button"
@@ -93,7 +124,7 @@ export default function Navbar() {
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
             className={cn(
-              "md:hidden rounded-full border p-2 transition-colors",
+              "lg:hidden rounded-full border p-2 transition-colors",
               overHero ? "border-white/25 text-white" : "border-line text-foreground"
             )}
           >
@@ -109,7 +140,7 @@ export default function Navbar() {
       </nav>
 
       {open && (
-        <div className="glass absolute top-16 inset-x-4 rounded-2xl p-4 md:hidden">
+        <div className="glass absolute top-16 inset-x-4 rounded-2xl p-4 lg:hidden">
           <ul className="flex flex-col gap-1 text-sm">
             {links.map((l) => (
               <li key={l.href}>
@@ -124,11 +155,11 @@ export default function Navbar() {
             ))}
             <li className="pt-2 border-t border-line mt-2">
               <Link
-                href="/signin"
+                href={signedIn ? "/dashboard" : "/signin"}
                 onClick={() => setOpen(false)}
                 className="block py-2.5 text-foreground hover:text-accent"
               >
-                Sign in
+                {signedIn ? "My account" : "Sign in"}
               </Link>
             </li>
           </ul>

@@ -10,9 +10,10 @@ import ShopHero from "@/components/shop/ShopHero";
 import CategoryTiles from "@/components/shop/CategoryTiles";
 import PromoStrip from "@/components/shop/PromoStrip";
 import { formatNGN } from "@/lib/utils";
+import { DELIVERY } from "@/lib/pricing";
 
 const promos = [
-  { label: "Free Lagos delivery", detail: "On orders above ₦250,000" },
+  { label: "Free Lagos delivery", detail: `On orders above ${formatNGN(DELIVERY.freeLagosAbove)}` },
   { label: "12-month warranty", detail: "On every new device" },
   { label: "Trade-ins accepted", detail: "Offset against your next phone" },
   { label: "In-house repair lab", detail: "Board level diagnostics" },

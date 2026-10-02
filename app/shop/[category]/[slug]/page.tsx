@@ -6,6 +6,9 @@ import ProductBuyPanel from "@/components/shop/ProductBuyPanel";
 import ProductCard from "@/components/shop/ProductCard";
 import ProductStage from "@/components/shop/ProductStage";
 import { Badge } from "@/components/ui/badge";
+import JsonLd from "@/components/JsonLd";
+import { SITE_URL, SITE_NAME } from "@/lib/site";
+import { formatNGN } from "@/lib/utils";
 
 export function generateStaticParams() {
   return products.map((p) => ({ category: p.category, slug: p.slug }));
@@ -18,10 +21,20 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { category, slug } = await params;
   const product = getProduct(category, slug);
-  if (!product) return { title: "Product | Culverin Quantum Systems" };
+  if (!product) return { title: "Product" };
+  const path = `/shop/${product.category}/${product.slug}`;
+  const description = `Buy ${product.name} in Nigeria from ${formatNGN(product.price)}. ${product.tagline} Delivery across Nigeria, 12-month warranty.`;
   return {
-    title: `${product.name} | Culverin Quantum Systems`,
-    description: product.tagline,
+    title: `${product.name} Price in Nigeria`,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "website",
+      title: `${product.name} | ${SITE_NAME}`,
+      description,
+      url: path,
+      images: [{ url: product.image, alt: product.name }],
+    },
   };
 }
 
@@ -36,9 +49,40 @@ export default async function ProductPage({
 
   const cat = getCategory(product.category);
   const more = related(product, 4);
+  const url = `${SITE_URL}/shop/${product.category}/${product.slug}`;
+  const structured = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product.name,
+      description: product.tagline,
+      image: `${SITE_URL}${product.image}`,
+      sku: product.slug,
+      brand: { "@type": "Brand", name: product.brand },
+      category: cat?.name,
+      offers: {
+        "@type": "Offer",
+        url,
+        priceCurrency: "NGN",
+        price: product.price,
+        availability: "https://schema.org/InStock",
+        seller: { "@id": `${SITE_URL}/#organization` },
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Shop", item: `${SITE_URL}/shop` },
+        { "@type": "ListItem", position: 2, name: cat?.name, item: `${SITE_URL}/shop/${product.category}` },
+        { "@type": "ListItem", position: 3, name: product.name, item: url },
+      ],
+    },
+  ];
 
   return (
     <div className="mx-auto max-w-7xl px-5 pb-20 sm:px-6 md:pb-24">
+      <JsonLd data={structured} />
       <nav aria-label="Breadcrumb" className="pt-10 text-sm text-muted">
         <Link href="/shop" className="hover:text-foreground">
           Shop

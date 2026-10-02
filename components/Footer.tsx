@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CONTACT, RC_NUMBER } from "@/lib/site";
 
 export default function Footer() {
   return (
@@ -9,17 +10,17 @@ export default function Footer() {
             Talk to <span className="text-accent">our team</span>.
           </h2>
           <div className="mx-auto mt-8 flex w-full max-w-sm flex-col gap-3 sm:mt-10 sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4">
-            <a
-              href="mailto:hello@culverinquantum.com"
+            <Link
+              href="/contact"
               className="break-words rounded-full bg-accent px-6 py-3.5 text-center text-sm font-semibold text-white transition-colors hover:bg-accent-hover sm:px-8"
             >
-              hello@culverinquantum.com
-            </a>
+              Send us a message
+            </Link>
             <Link
-              href="/signup"
+              href="/repairs"
               className="rounded-full border border-line px-6 py-3.5 text-center text-sm font-semibold transition-colors hover:border-accent hover:text-accent sm:px-8"
             >
-              Create account
+              Book a repair
             </Link>
           </div>
         </div>
@@ -29,7 +30,7 @@ export default function Footer() {
             <p className="font-semibold">Culverin Quantum Systems Limited</p>
             <p className="mt-2 max-w-sm text-muted">
               Electronics retail, repairs and solar energy. Registered in Nigeria as
-              a private company limited by shares under CAMA 2020.
+              a private company limited by shares under CAMA 2020, {RC_NUMBER}.
             </p>
           </div>
           <div>
@@ -43,6 +44,10 @@ export default function Footer() {
               <li><Link href="/shop/gaming" className="hover:text-foreground">Gaming</Link></li>
               <li><Link href="/shop" className="hover:text-foreground">All products</Link></li>
               <li><Link href="/about" className="hover:text-foreground">About us</Link></li>
+              <li><Link href="/repairs" className="hover:text-foreground">Repairs</Link></li>
+              <li><Link href="/returns" className="hover:text-foreground">Delivery &amp; returns</Link></li>
+              <li><Link href="/terms" className="hover:text-foreground">Terms</Link></li>
+              <li><Link href="/privacy" className="hover:text-foreground">Privacy</Link></li>
               <li><Link href="/credits" className="hover:text-foreground">Image credits</Link></li>
             </ul>
           </div>
@@ -51,13 +56,22 @@ export default function Footer() {
               Contact
             </p>
             <ul className="mt-4 space-y-2 text-muted">
-              <li>+234 (0) 000 000 0000</li>
-              <li>Lagos, Nigeria</li>
-              <li className="flex gap-4 pt-2">
-                <a href="#" aria-label="Instagram" className="hover:text-accent">Instagram</a>
-                <a href="#" aria-label="X" className="hover:text-accent">X</a>
-                <a href="#" aria-label="WhatsApp" className="hover:text-accent">WhatsApp</a>
+              <li>
+                <a href={`mailto:${CONTACT.email}`} className="hover:text-foreground">{CONTACT.email}</a>
               </li>
+              {CONTACT.phone && (
+                <li>
+                  <a href={`tel:${CONTACT.phone.replace(/\s/g, "")}`} className="hover:text-foreground">{CONTACT.phone}</a>
+                </li>
+              )}
+              <li>Lagos, Nigeria</li>
+              {CONTACT.whatsapp && (
+                <li className="pt-2">
+                  <a href={`https://wa.me/${CONTACT.whatsapp.replace(/\D/g, "")}`} className="hover:text-accent">
+                    WhatsApp
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
         </div>

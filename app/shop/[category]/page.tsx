@@ -21,10 +21,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { category } = await params;
   const cat = getCategory(category);
-  if (!cat) return { title: "Shop | Culverin Quantum Systems" };
+  if (!cat) return { title: "Shop" };
   return {
-    title: `${cat.name} | Culverin Quantum Systems`,
-    description: cat.blurb,
+    title: `${cat.name} Prices in Nigeria`,
+    description: `${cat.blurb} Shop ${cat.name.toLowerCase()} online with delivery across Nigeria.`,
+    alternates: { canonical: `/shop/${cat.id}` },
+    openGraph: { title: `${cat.name} | Culverin Quantum Systems`, images: [cat.image] },
   };
 }
 

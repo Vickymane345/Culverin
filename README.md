@@ -11,6 +11,23 @@ pnpm dev
 
 Open http://localhost:3000 — the dashboard is at `/dashboard`.
 
+To switch on accounts, checkout and payments, copy `.env.example` to `.env.local`
+and follow **SETUP.md** (Supabase, Paystack, Vercel, Google Search Console).
+
+## Backend
+
+- **Supabase** for sign-in (email/password, Google, password reset) and the database.
+  Schema and row-level security: `supabase/migrations/0001_init.sql`.
+- **Paystack** for payments. Checkout prices the bag on the server from
+  `lib/catalog.ts`, creates the order, and sends the customer to Paystack. The
+  callback page and `/api/paystack/webhook` both confirm the charge; the order is
+  only marked paid when the amount matches.
+- **Resend** (optional) for order, repair and enquiry emails.
+- `proxy.ts` keeps the session fresh and guards `/dashboard` and `/admin`.
+- Pages: `/cart`, `/checkout`, `/repairs`, `/contact`, `/admin`, `/terms`,
+  `/privacy`, `/returns`. SEO: `app/sitemap.ts`, `app/robots.ts`, JSON-LD on
+  every page.
+
 ## Structure
 
 ```
@@ -24,15 +41,15 @@ app/
     orders/page.tsx         full order history table
     wishlist/page.tsx       saved items grid
     devices/page.tsx        repair tracking with progress steps
-    settings/page.tsx       profile + security form (UI only)
+    settings/page.tsx       profile, delivery address, password
   shop/
     layout.tsx              navbar + sticky category bar + footer
     page.tsx                shop hub: category tiles, featured rails
     [category]/page.tsx     filterable grid (brand, price, search, sort)
     [category]/[slug]/page.tsx  product detail
   (auth)/
-    signin/page.tsx         sign in (UI only)
-    signup/page.tsx         sign up (UI only)
+    signin/page.tsx         sign in (Supabase)
+    signup/page.tsx         sign up (Supabase)
 components/
   SmoothScroll.tsx          Lenis <-> GSAP ScrollTrigger sync
   Navbar.tsx                floating glass pill nav
@@ -53,7 +70,9 @@ components/
 lib/
   catalog.ts                shop catalog: 91 products across 6 categories
   products.ts               landing page showcase data
-  mock-data.ts              dashboard mock data (typed, swappable for API)
+  pricing.ts                variant pricing, cart pricing, delivery fees
+  types.ts                  database row types
+  supabase/                 browser and server clients
   utils.ts                  cn(), formatNGN()
 public/
   videos/iphone-assembly.mp4
@@ -104,10 +123,9 @@ build produces 109 pre-rendered routes.
 
 ## Swapping in real data
 
-Dashboard content flows from typed objects in `lib/mock-data.ts` (`Order`,
-`WishlistItem`, `Device`, `UserProfile`); shop content from `Product[]` in
-`lib/catalog.ts`. Replace those exports with fetch calls returning the same
-shapes and no component changes are needed.
+Dashboard content comes from Supabase (orders, wishlist, repair bookings,
+profile). Shop content comes from `Product[]` in `lib/catalog.ts`; edit prices
+there and the shop, checkout and sitemap all follow.
 
 ## Product imagery
 

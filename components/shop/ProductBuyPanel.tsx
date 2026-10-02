@@ -1,20 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Product } from "@/lib/catalog";
+import { priceFor } from "@/lib/pricing";
 import { cn, formatNGN } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-
-// Higher tiers cost more. Placeholder uplift so the picker visibly does
-// something. Replace with real per-variant pricing later.
-function priceFor(product: Product, optionIndex: number) {
-  return product.price + optionIndex * Math.round(product.price * 0.12);
-}
+import { useCart } from "@/components/shop/CartProvider";
+import WishlistButton from "@/components/shop/WishlistButton";
 
 export default function ProductBuyPanel({ product }: { product: Product }) {
   const [option, setOption] = useState(0);
   const [colour, setColour] = useState(0);
   const [added, setAdded] = useState(false);
+  const { add } = useCart();
+  const router = useRouter();
+
+  const line = { category: product.category, slug: product.slug, option, colour };
 
   const price = priceFor(product, option);
 
@@ -85,17 +88,31 @@ export default function ProductBuyPanel({ product }: { product: Product }) {
       <div className="space-y-3">
         <Button
           type="button"
-          onClick={() => setAdded(true)}
+          onClick={() => {
+            add(line);
+            setAdded(true);
+          }}
           className="w-full py-3.5"
         >
           {added ? "Added to bag" : "Add to bag"}
         </Button>
-        <Button type="button" variant="outline" className="w-full py-3.5">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full py-3.5"
+          onClick={() => {
+            add(line);
+            router.push("/checkout");
+          }}
+        >
           Buy now
         </Button>
-        <p className="text-center text-xs text-muted">
-          Cart and checkout are not connected yet.
-        </p>
+        {added && (
+          <p className="text-center text-sm">
+            <Link href="/cart" className="text-accent hover:underline">View bag and check out</Link>
+          </p>
+        )}
+        <WishlistButton category={product.category} slug={product.slug} className="w-full" />
       </div>
 
       <ul className="space-y-2.5 border-t border-line pt-6 text-sm text-muted">

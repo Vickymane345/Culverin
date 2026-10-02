@@ -5,7 +5,8 @@ import Footer from "@/components/Footer";
 import AboutStory, { type AboutSection } from "@/components/about/AboutStory";
 
 export const metadata: Metadata = {
-  title: "About us | Culverin Quantum Systems",
+  title: "About us",
+  alternates: { canonical: "/about" },
   description:
     "Culverin Quantum Systems Limited is a Nigerian electronics retailer and engineering practice, registered under CAMA 2020. We sell phones, laptops and solar systems, and we repair and install them.",
 };

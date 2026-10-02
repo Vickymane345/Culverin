@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { imageCredits } from "@/lib/image-credits";
 
 export const metadata: Metadata = {
-  title: "Image credits | Culverin Quantum Systems",
+  title: "Image credits",
   description:
     "Photography attribution for product imagery used across the Culverin Quantum Systems store.",
 };

@@ -1,52 +1,68 @@
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { OrderStatusBadge } from "@/components/dashboard/StatusBadge";
-import { orders } from "@/lib/mock-data";
+import { requireAccount } from "@/lib/account";
+import type { OrderRow } from "@/lib/types";
 import { formatNGN } from "@/lib/utils";
 
-export default function OrdersPage() {
+export default async function OrdersPage() {
+  const { user, supabase } = await requireAccount("/dashboard/orders");
+  const { data } = await supabase
+    .from("orders")
+    .select("*, order_items(*)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+  const orders = (data ?? []) as OrderRow[];
+
   return (
     <div className="mx-auto max-w-6xl space-y-6 md:space-y-8">
       <div>
         <h1 className="text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">Order history</h1>
-        <p className="mt-1 text-muted">All orders across every category.</p>
+        <p className="mt-1 text-muted">Every order placed while signed in.</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Orders</CardTitle>
-          <CardDescription>{orders.length} orders on record</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Item</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((o) => (
-                <TableRow key={o.id}>
-                  <TableCell className="font-mono text-xs">{o.id}</TableCell>
-                  <TableCell className="whitespace-nowrap text-muted">
-                    {new Date(o.date).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
-                  </TableCell>
-                  <TableCell className="max-w-[12rem] truncate sm:max-w-[20rem]">{o.item}</TableCell>
-                  <TableCell><Badge variant="muted">{o.category}</Badge></TableCell>
-                  <TableCell className="whitespace-nowrap">{formatNGN(o.amount)}</TableCell>
-                  <TableCell><OrderStatusBadge status={o.status} /></TableCell>
-                </TableRow>
+      {orders.length === 0 && (
+        <Card>
+          <CardContent className="p-6 text-sm text-muted">
+            No orders yet. <Link href="/shop" className="text-accent hover:underline">Start shopping</Link>.
+          </CardContent>
+        </Card>
+      )}
+
+      {orders.map((o) => (
+        <Card key={o.id}>
+          <CardHeader className="flex-row flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="font-mono text-base">{o.reference}</CardTitle>
+              <CardDescription>
+                {new Date(o.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                {" · "}
+                {o.city}, {o.state}
+              </CardDescription>
+            </div>
+            <OrderStatusBadge status={o.status} />
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y divide-line text-sm">
+              {(o.order_items ?? []).map((i) => (
+                <li key={i.id} className="flex justify-between gap-4 py-2.5">
+                  <span>
+                    {i.product_name}
+                    {i.option && <span className="text-muted"> · {i.option}</span>}
+                    {i.colour && <span className="text-muted"> · {i.colour}</span>}
+                    <span className="text-muted"> × {i.quantity}</span>
+                  </span>
+                  <span className="whitespace-nowrap font-mono">{formatNGN(i.unit_price * i.quantity)}</span>
+                </li>
               ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </ul>
+            <div className="mt-3 flex justify-between border-t border-line pt-3 text-sm">
+              <span className="text-muted">Delivery {formatNGN(o.delivery_fee)}</span>
+              <span className="font-medium">Total {formatNGN(o.total)}</span>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { user } from "@/lib/mock-data";
+import { signOut } from "@/app/(auth)/actions";
 
 const nav = [
   { href: "/dashboard", label: "Overview" },
@@ -14,13 +14,23 @@ const nav = [
   { href: "/dashboard/settings", label: "Settings" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+  name,
+  email,
+  isAdmin,
+}: {
+  name: string;
+  email: string;
+  isAdmin: boolean;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  const links = isAdmin ? [...nav, { href: "/admin", label: "Admin" }] : nav;
+
   const items = (
     <ul className="space-y-1">
-      {nav.map((n) => {
+      {links.map((n) => {
         const active =
           n.href === "/dashboard"
             ? pathname === n.href
@@ -54,14 +64,16 @@ export default function Sidebar() {
         </Link>
         <nav aria-label="Dashboard">{items}</nav>
         <div className="mt-auto rounded-2xl border border-line p-4">
-          <p className="text-sm font-medium">{user.name}</p>
-          <p className="truncate text-xs text-muted">{user.email}</p>
-          <Link
-            href="/signin"
-            className="mt-3 block text-xs text-muted transition-colors hover:text-accent"
-          >
-            Sign out
-          </Link>
+          <p className="truncate text-sm font-medium">{name}</p>
+          <p className="truncate text-xs text-muted">{email}</p>
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="mt-3 block text-xs text-muted transition-colors hover:text-accent"
+            >
+              Sign out
+            </button>
+          </form>
         </div>
       </aside>
 
@@ -87,6 +99,11 @@ export default function Sidebar() {
         {open && (
           <div className="glass absolute top-full inset-x-3 mt-2 rounded-2xl p-3">
             {items}
+            <form action={signOut} className="mt-2 border-t border-line pt-2">
+              <button type="submit" className="block w-full rounded-xl px-4 py-2.5 text-left text-sm text-muted hover:bg-surface">
+                Sign out
+              </button>
+            </form>
           </div>
         )}
       </div>

@@ -1,19 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useActionState } from "react";
 import { Input, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FormMessage } from "@/components/ui/form-message";
 import SocialButtons from "@/components/auth/SocialButtons";
+import { signUp } from "../actions";
 
 export default function SignUpPage() {
-  const router = useRouter();
+  const [state, action, pending] = useActionState(signUp, undefined);
 
-  // No backend yet. This simply routes to the dashboard.
-  // Replace with a real sign-up call when auth is wired up.
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    router.push("/dashboard");
+  if (state?.message) {
+    return (
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">Check your email</h1>
+        <p className="mt-4 text-muted">{state.message}</p>
+        <Link href="/signin" className="mt-8 inline-block text-sm text-accent hover:underline">
+          Back to sign in
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -27,7 +34,9 @@ export default function SignUpPage() {
         <SocialButtons />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form action={action} className="space-y-4">
+        <FormMessage error={state?.error} />
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="firstName">First name</Label>
@@ -51,7 +60,7 @@ export default function SignUpPage() {
 
         <div>
           <Label htmlFor="password">Password</Label>
-          <Input id="password" name="password" type="password" autoComplete="new-password" placeholder="••••••••" required />
+          <Input id="password" name="password" type="password" autoComplete="new-password" placeholder="••••••••" minLength={8} required />
           <p className="mt-1.5 text-xs text-muted">
             At least 8 characters, with a number and a symbol.
           </p>
@@ -64,13 +73,15 @@ export default function SignUpPage() {
             className="mt-0.5 size-4 rounded border-line bg-background accent-[#0066cc]"
           />
           <span>
-            I agree to the terms of service and privacy policy of Culverin
-            Quantum Systems Limited.
+            I agree to the{" "}
+            <Link href="/terms" className="text-accent hover:underline">terms of service</Link> and{" "}
+            <Link href="/privacy" className="text-accent hover:underline">privacy policy</Link> of
+            Culverin Quantum Systems Limited.
           </span>
         </label>
 
-        <Button type="submit" className="w-full py-3">
-          Create account
+        <Button type="submit" disabled={pending} className="w-full py-3">
+          {pending ? "Creating account…" : "Create account"}
         </Button>
       </form>
 
