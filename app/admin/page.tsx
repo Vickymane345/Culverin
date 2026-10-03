@@ -144,7 +144,7 @@ async function Orders({ supabase }: { supabase: Db }) {
             <button type="submit" className="rounded-full bg-accent px-4 py-1.5 text-sm text-white">Update</button>
             {o.status === "pending_payment" && o.payment_method === "bank_transfer" && (
               <span className="text-xs text-muted">
-                Check UBA for {formatNGN(o.total)} with reference {o.reference}, then set Paid.
+                Check your OPay account for {formatNGN(o.total)} with reference {o.reference}, then set Paid.
               </span>
             )}
           </form>

@@ -104,7 +104,7 @@ export async function notifyOrder(orderId: string, mode: "paid" | "transfer") {
           Email: ${escapeHtml(order.email)}</p>
         ${table}
         ${order.notes ? `<p>Customer note: ${escapeHtml(order.notes)}</p>` : ""}
-        ${mode === "transfer" ? `<p>Check your UBA account for a transfer of ${formatNGN(order.total)} with reference ${order.reference}, then mark the order Paid in admin.</p>` : ""}
+        ${mode === "transfer" ? `<p>Check your OPay account for a transfer of ${formatNGN(order.total)} with reference ${order.reference}, then mark the order Paid in admin.</p>` : ""}
         <p><a href="${SITE_URL}/admin">Open admin</a></p>`,
     });
   }
