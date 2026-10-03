@@ -6,7 +6,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { requireAccount } from "@/lib/account";
 import { CATALOG_TAG } from "@/lib/catalog";
 import { deleteFromR2, r2Configured, uploadToR2 } from "@/lib/r2";
-import { SITE_URL } from "@/lib/site";
+import { migrateImageBatch } from "@/lib/migrate-images";
 
 async function requireAdmin() {
   const ctx = await requireAccount("/admin");
@@ -207,42 +207,13 @@ export async function moveProductImage(formData: FormData) {
   refreshShop();
 }
 
-/**
- * Copies photos still served from the website's own /images folder into R2,
- * a batch at a time so each run finishes well inside the time limit.
- */
+/** Moves photos still in the site's /images folder to R2, a batch at a time. */
 export async function migrateLocalImages(): Promise<{ moved: number; remaining: number; error?: string }> {
   const { supabase } = await requireAdmin();
   if (!r2Configured()) return { moved: 0, remaining: 0, error: "Set up Cloudflare R2 first." };
-
-  const { data: batch } = await supabase
-    .from("product_images")
-    .select("id, image_url")
-    .like("image_url", "/%")
-    .limit(12);
-
-  let moved = 0;
-  for (const img of batch ?? []) {
-    try {
-      const res = await fetch(`${SITE_URL}${img.image_url}`, { cache: "no-store" });
-      if (!res.ok) continue;
-      const type = res.headers.get("content-type")?.split(";")[0] || "image/jpeg";
-      const name = img.image_url.split("/").pop() || `${img.id}.jpg`;
-      const key = `products/${name}`;
-      const url = await uploadToR2(key, new Uint8Array(await res.arrayBuffer()), type);
-      await supabase.from("product_images").update({ image_url: url, storage_key: key }).eq("id", img.id);
-      moved++;
-    } catch (e) {
-      console.error("migrate image failed", img.image_url, e);
-    }
-  }
-
-  const { count } = await supabase
-    .from("product_images")
-    .select("id", { count: "exact", head: true })
-    .like("image_url", "/%");
-  if (moved) refreshShop();
-  return { moved, remaining: count ?? 0 };
+  const result = await migrateImageBatch(supabase);
+  if (result.moved) refreshShop();
+  return result;
 }
 
 // ---------------------------------------------------------------------------
