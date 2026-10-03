@@ -8,9 +8,9 @@ export const RC_NUMBER = "RC 9083558";
 
 // Where customers send bank transfers. Shown at checkout and in emails.
 export const BANK = {
-  bankName: "UBA (United Bank for Africa)",
-  accountNumber: "2143392837",
-  accountName: process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME || "",
+  bankName: "OPay",
+  accountNumber: "7078698149",
+  accountName: process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME || "Victor Udechukwu",
 };
 
 export const CONTACT = {
