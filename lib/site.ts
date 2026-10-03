@@ -1,5 +1,5 @@
 // Site-wide constants. Set NEXT_PUBLIC_SITE_URL to the live domain in production
-// so canonical URLs, the sitemap and Paystack callbacks point to the right place.
+// so canonical URLs, the sitemap and OPay callbacks point to the right place.
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
 
 export const SITE_NAME = "Culverin Quantum Systems";

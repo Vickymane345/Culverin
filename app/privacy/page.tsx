@@ -24,7 +24,7 @@ export default function PrivacyPage() {
       <p>To deliver orders, carry out repairs, answer your questions and meet our legal and tax obligations.</p>
       <h2>Who we share it with</h2>
       <ul>
-        <li>Paystack, to take payments. We never receive your full card number.</li>
+        <li>OPay, to take online payments. We never receive your full card number.</li>
         <li>Supabase, which hosts our database and sign-in.</li>
         <li>Delivery partners, only the details needed to deliver your order.</li>
       </ul>

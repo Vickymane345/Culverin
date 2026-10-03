@@ -25,7 +25,7 @@ export default function TermsPage() {
       <p>
         You can pay by bank transfer to our account, shown at checkout, using your order reference as the
         narration. We hold the order once it is placed and confirm it when the transfer arrives; unpaid orders
-        may be cancelled after 48 hours. Card payments, where offered, are processed by Paystack and we never see
+        may be cancelled after 48 hours. Card payments, where offered, are processed by OPay and we never see
         or store your card details.
       </p>
       <h2>Delivery, returns and warranty</h2>

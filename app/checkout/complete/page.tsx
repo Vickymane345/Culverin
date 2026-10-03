@@ -1,24 +1,43 @@
 import Link from "next/link";
-import { verifyTransaction, paystackConfigured } from "@/lib/paystack";
+import { queryStatus, opayConfigured } from "@/lib/opay";
 import { markOrderPaid } from "@/lib/orders";
 import ClearCart from "./ClearCart";
 
-// Paystack sends the customer back here with ?reference=... after paying.
+// OPay sends the customer back here (returnUrl) with ?reference=... after paying.
 export default async function CheckoutCompletePage({
   searchParams,
 }: {
-  searchParams: Promise<{ reference?: string; trxref?: string }>;
+  searchParams: Promise<{ reference?: string }>;
 }) {
   const sp = await searchParams;
-  const reference = sp.reference ?? sp.trxref ?? "";
+  const reference = sp.reference ?? "";
 
   let paid = false;
-  if (reference && paystackConfigured()) {
-    const tx = await verifyTransaction(reference);
-    if (tx?.status === "success") {
+  let processing = false;
+  if (reference && opayConfigured()) {
+    const tx = await queryStatus(reference);
+    if (tx?.status === "SUCCESS") {
       const res = await markOrderPaid(tx.reference, tx.amountKobo, tx.currency);
       paid = res.ok;
+    } else if (tx?.status === "PENDING") {
+      processing = true;
     }
+  }
+
+  if (processing) {
+    return (
+      <div className="py-16 text-center">
+        <ClearCart />
+        <h1 className="text-3xl font-semibold tracking-tight">Payment processing</h1>
+        <p className="mx-auto mt-4 max-w-md text-muted">
+          OPay is still confirming your payment for <span className="font-mono text-foreground">{reference}</span>.
+          You will get an email as soon as it clears, usually within a few minutes.
+        </p>
+        <Link href="/dashboard/orders" className="mt-8 inline-block rounded-full bg-accent px-6 py-3 text-sm font-medium text-white">
+          View my orders
+        </Link>
+      </div>
+    );
   }
 
   if (!paid) {

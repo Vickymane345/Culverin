@@ -5,7 +5,7 @@ import { formatNGN } from "@/lib/utils";
 import { BANK, SITE_URL } from "@/lib/site";
 
 /**
- * Marks an order paid once Paystack confirms the charge. Safe to call twice
+ * Marks an order paid once OPay confirms the charge. Safe to call twice
  * (callback page and webhook both do): only the first call changes anything.
  */
 export async function markOrderPaid(reference: string, amountKobo: number, currency: string) {
@@ -38,7 +38,7 @@ export async function markOrderPaid(reference: string, amountKobo: number, curre
 /**
  * Emails the customer and the shop about an order.
  * "transfer": order placed, waiting for a bank transfer (includes bank details).
- * "paid": payment confirmed by Paystack.
+ * "paid": payment confirmed by OPay.
  */
 export async function notifyOrder(orderId: string, mode: "paid" | "transfer") {
   const db = createServiceClient();

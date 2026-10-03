@@ -5,7 +5,7 @@ import { getUser, createServiceClient } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/config";
 import { deliveryFee, NIGERIAN_STATES, type CartLine } from "@/lib/pricing";
 import { priceCart } from "@/lib/pricing-server";
-import { initializeTransaction, paystackConfigured } from "@/lib/paystack";
+import { createCheckout, opayConfigured } from "@/lib/opay";
 import { makeReference } from "@/lib/reference";
 import { notifyOrder } from "@/lib/orders";
 import { SITE_URL } from "@/lib/site";
@@ -25,9 +25,8 @@ export async function placeOrder(_: CheckoutState, formData: FormData): Promise<
   const city = get("city");
   const state = get("state");
   const notes = get("notes").slice(0, 500);
-  // Bank transfer is always available; Paystack only once its key is set.
-  const paymentMethod =
-    get("payment") === "paystack" && paystackConfigured() ? "paystack" : "bank_transfer";
+  // Bank transfer is always available; OPay only once its keys are set.
+  const paymentMethod = get("payment") === "opay" && opayConfigured() ? "opay" : "bank_transfer";
 
   if (!fullName || !phone || !address || !city) return { error: "Please fill in your name, phone and delivery address." };
   if (!/^\S+@\S+\.\S+$/.test(email)) return { error: "Please enter a valid email address." };
@@ -102,17 +101,21 @@ export async function placeOrder(_: CheckoutState, formData: FormData): Promise<
     redirect(`/checkout/transfer?reference=${encodeURIComponent(reference)}`);
   }
 
-  const payment = await initializeTransaction({
-    email,
-    amountNaira: total,
+  const payment = await createCheckout({
     reference,
-    callbackUrl: `${SITE_URL}/checkout/complete`,
-    metadata: { order_id: order.id, customer: fullName },
+    amountNaira: total,
+    email,
+    name: fullName,
+    phone,
+    returnUrl: `${SITE_URL}/checkout/complete?reference=${encodeURIComponent(reference)}`,
+    cancelUrl: `${SITE_URL}/checkout/complete?reference=${encodeURIComponent(reference)}`,
+    callbackUrl: `${SITE_URL}/api/opay/webhook`,
+    description: priced.map((l) => `${l.quantity} x ${l.product.name}`).join(", "),
   });
   if ("error" in payment) {
     await db.from("orders").update({ status: "cancelled" }).eq("id", order.id);
     return { error: payment.error };
   }
 
-  redirect(payment.authorizationUrl);
+  redirect(payment.cashierUrl);
 }

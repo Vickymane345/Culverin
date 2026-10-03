@@ -12,16 +12,16 @@ pnpm dev
 Open http://localhost:3000 — the dashboard is at `/dashboard`.
 
 To switch on accounts, checkout and payments, copy `.env.example` to `.env.local`
-and follow **SETUP.md** (Supabase, Paystack, Vercel, Google Search Console).
+and follow **SETUP.md** (Supabase, OPay, Vercel, Google Search Console).
 
 ## Backend
 
 - **Supabase** for sign-in (email/password, Google, password reset) and the database.
   Schema and row-level security: `supabase/migrations/0001_init.sql`.
-- **Paystack** for payments. Checkout prices the bag on the server from
-  `lib/catalog.ts`, creates the order, and sends the customer to Paystack. The
-  callback page and `/api/paystack/webhook` both confirm the charge; the order is
-  only marked paid when the amount matches.
+- **OPay** merchant checkout for online payments, plus bank transfer. Checkout
+  prices the bag on the server from the database, creates the order, and sends
+  the customer to OPay. The return page and `/api/opay/webhook` both ask OPay's
+  status API directly; the order is only marked paid when the amount matches.
 - **Resend** (optional) for order, repair and enquiry emails.
 - `proxy.ts` keeps the session fresh and guards `/dashboard` and `/admin`.
 - Pages: `/cart`, `/checkout`, `/repairs`, `/contact`, `/admin`, `/terms`,

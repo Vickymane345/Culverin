@@ -55,7 +55,7 @@ export interface OrderRow {
   delivery_fee: number;
   total: number;
   status: OrderStatus;
-  payment_method: "paystack" | "bank_transfer";
+  payment_method: "opay" | "paystack" | "bank_transfer";
   paid_at: string | null;
   created_at: string;
   order_items?: OrderItemRow[];

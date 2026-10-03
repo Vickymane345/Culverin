@@ -87,7 +87,7 @@ async function Orders({ supabase }: { supabase: Db }) {
   const { data } = await supabase
     .from("orders")
     .select("*, order_items(*)")
-    // Unpaid Paystack orders are abandoned checkouts; unpaid transfers are real orders waiting for money.
+    // Unpaid online (OPay) orders are abandoned checkouts; unpaid transfers are real orders waiting for money.
     .or("status.neq.pending_payment,payment_method.eq.bank_transfer")
     .order("created_at", { ascending: false })
     .limit(200);
@@ -102,7 +102,7 @@ async function Orders({ supabase }: { supabase: Db }) {
             <div>
               <p className="font-mono text-sm">{o.reference}</p>
               <p className="text-xs text-muted">
-                {when(o.created_at)} · {o.payment_method === "bank_transfer" ? "Bank transfer" : "Paystack"}
+                {when(o.created_at)} · {o.payment_method === "bank_transfer" ? "Bank transfer" : o.payment_method === "opay" ? "OPay" : "Paystack"}
               </p>
             </div>
             <OrderStatusBadge status={o.status} />

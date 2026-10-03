@@ -16,16 +16,16 @@ export type Prefill = Partial<Record<"fullName" | "email" | "phone" | "address" 
 export default function CheckoutForm({
   prefill,
   signedIn,
-  paystackEnabled,
+  opayEnabled,
 }: {
   prefill: Prefill;
   signedIn: boolean;
-  paystackEnabled: boolean;
+  opayEnabled: boolean;
 }) {
   const { lines, ready, subtotal } = useCart();
   const [state, setState] = useState(prefill.state || "Lagos");
   const [result, action, pending] = useActionState(placeOrder, undefined);
-  const [payment, setPayment] = useState<"bank_transfer" | "paystack">("bank_transfer");
+  const [payment, setPayment] = useState<"bank_transfer" | "opay">("bank_transfer");
 
   const delivery = deliveryFee(state, subtotal);
 
@@ -120,8 +120,8 @@ export default function CheckoutForm({
             {(
               [
                 ["bank_transfer", "Bank transfer", `${BANK.bankName}, account ${BANK.accountNumber}. Details shown after you place the order.`],
-                ...(paystackEnabled ? [["paystack", "Card, USSD or transfer via Paystack", "Pay instantly online."]] : []),
-              ] as Array<["bank_transfer" | "paystack", string, string]>
+                ...(opayEnabled ? [["opay", "Pay online with OPay", "Card, bank transfer, USSD or your OPay wallet. Confirmed instantly."]] : []),
+              ] as Array<["bank_transfer" | "opay", string, string]>
             ).map(([value, label, hint]) => (
               <label
                 key={value}
@@ -148,8 +148,8 @@ export default function CheckoutForm({
           <Button type="submit" disabled={pending || !ready} className="mt-5 w-full py-3.5">
             {pending
               ? "Placing order…"
-              : payment === "paystack"
-                ? "Pay with Paystack"
+              : payment === "opay"
+                ? "Pay with OPay"
                 : "Place order"}
           </Button>
         </aside>

@@ -43,19 +43,23 @@ updates in their own dashboard).
 
 ---
 
-## 2. Paystack (payments: card, bank transfer, USSD)
+## 2. OPay merchant checkout (card, bank transfer, USSD, OPay wallet)
 
-1. Sign up at https://paystack.com and complete business verification with the CAC documents
-   for Culverin Quantum Systems Limited (RC 9083558). Test mode works before approval.
-2. **Settings → API Keys & Webhooks**
-   - Copy the **Secret key** into `PAYSTACK_SECRET_KEY` (`sk_test_…` while testing, `sk_live_…` for real money).
-   - Webhook URL: `https://yourdomain.com/api/paystack/webhook`
-3. Test with a Paystack test card (Paystack lists them in their docs) and check that the order
-   shows as **Paid** in your admin page.
+1. Sign up for an OPay Business / merchant account and complete KYB with the CAC documents for
+   Culverin Quantum Systems Limited (RC 9083558). Ask your OPay account officer to enable
+   **online checkout (Cashier API)** for your merchant account.
+2. In the merchant dashboard, open the developer / API keys section and copy:
+   - **Merchant ID** → `OPAY_MERCHANT_ID`
+   - **Public key** → `OPAY_PUBLIC_KEY`
+   - **Secret key** → `OPAY_SECRET_KEY`
+3. Add them in Vercel (Production + Preview) and redeploy. While testing with sandbox keys, also
+   set `OPAY_ENV=sandbox`; remove it when you switch to live keys.
+4. Nothing to paste for the webhook: every payment tells OPay to call
+   `https://culverin.shop/api/opay/webhook` automatically.
+5. Place a small test order, choose **Pay online with OPay**, and check it shows as **Paid** in admin.
 
-Prices are always recalculated on the server from `lib/catalog.ts`, so a customer cannot change
-what they pay by editing the page. An order is only marked paid after Paystack confirms the exact
-amount.
+Prices are always recalculated on the server, so a customer cannot change what they pay by editing
+the page. An order is only marked paid after OPay's status API confirms the exact amount.
 
 ---
 
