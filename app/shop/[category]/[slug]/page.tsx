@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { products, getProduct, getCategory, related } from "@/lib/catalog";
+import { getCategory, getProduct, getProducts, related } from "@/lib/catalog";
 import ProductBuyPanel from "@/components/shop/ProductBuyPanel";
 import ProductCard from "@/components/shop/ProductCard";
 import ProductStage from "@/components/shop/ProductStage";
@@ -10,8 +10,8 @@ import JsonLd from "@/components/JsonLd";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 import { formatNGN } from "@/lib/utils";
 
-export function generateStaticParams() {
-  return products.map((p) => ({ category: p.category, slug: p.slug }));
+export async function generateStaticParams() {
+  return (await getProducts()).map((p) => ({ category: p.category, slug: p.slug }));
 }
 
 export async function generateMetadata({
@@ -20,7 +20,7 @@ export async function generateMetadata({
   params: Promise<{ category: string; slug: string }>;
 }): Promise<Metadata> {
   const { category, slug } = await params;
-  const product = getProduct(category, slug);
+  const product = await getProduct(category, slug);
   if (!product) return { title: "Product" };
   const path = `/shop/${product.category}/${product.slug}`;
   const description = `Buy ${product.name} in Nigeria from ${formatNGN(product.price)}. ${product.tagline} Delivery across Nigeria, 12-month warranty.`;
@@ -44,11 +44,12 @@ export default async function ProductPage({
   params: Promise<{ category: string; slug: string }>;
 }) {
   const { category, slug } = await params;
-  const product = getProduct(category, slug);
+  const product = await getProduct(category, slug);
   if (!product) notFound();
 
-  const cat = getCategory(product.category);
-  const more = related(product, 4);
+  const cat = await getCategory(product.category);
+  const more = related(await getProducts(), product, 4);
+  const absolute = (src: string) => (src.startsWith("http") ? src : `${SITE_URL}${src}`);
   const url = `${SITE_URL}/shop/${product.category}/${product.slug}`;
   const structured = [
     {
@@ -56,7 +57,7 @@ export default async function ProductPage({
       "@type": "Product",
       name: product.name,
       description: product.tagline,
-      image: `${SITE_URL}${product.image}`,
+      image: product.images.length ? product.images.map(absolute) : absolute(product.image),
       sku: product.slug,
       brand: { "@type": "Brand", name: product.brand },
       category: cat?.name,
@@ -97,7 +98,7 @@ export default async function ProductPage({
 
       <div className="grid gap-8 py-8 md:gap-12 lg:grid-cols-2 lg:gap-16 lg:py-16">
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <ProductStage src={product.image} alt={product.name} />
+          <ProductStage images={product.images.length ? product.images : [product.image]} alt={product.name} />
         </div>
 
         <div>

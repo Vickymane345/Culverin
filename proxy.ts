@@ -45,6 +45,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // Skip static assets, images and the Paystack webhook (no session there).
-    "/((?!_next/static|_next/image|favicon.ico|api/paystack|images/|videos/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|ico|txt|xml)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/paystack|api/cron|images/|videos/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|ico|txt|xml)$).*)",
   ],
 };

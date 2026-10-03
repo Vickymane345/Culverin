@@ -2,17 +2,16 @@
 
 import Link from "next/link";
 import { useCart } from "@/components/shop/CartProvider";
-import { priceCart, DELIVERY, MAX_QTY } from "@/lib/pricing";
+import { DELIVERY, MAX_QTY, lineTotal } from "@/lib/pricing";
 import { formatNGN } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export default function CartPage() {
   const { lines, ready, subtotal, setQuantity, remove } = useCart();
-  const priced = priceCart(lines);
 
   if (!ready) return <p className="text-muted">Loading your bag…</p>;
 
-  if (priced.length === 0) {
+  if (lines.length === 0) {
     return (
       <div className="py-16 text-center">
         <h1 className="text-3xl font-semibold tracking-tight">Your bag is empty</h1>
@@ -29,15 +28,15 @@ export default function CartPage() {
       <h1 className="text-3xl font-semibold tracking-tight">Your bag</h1>
 
       <ul className="mt-8 divide-y divide-line rounded-2xl border border-line">
-        {priced.map((l, i) => (
-          <li key={`${l.product.slug}-${i}`} className="flex gap-4 p-4 sm:p-5">
-            <img src={l.product.image} alt="" className="size-20 shrink-0 rounded-xl bg-surface object-cover sm:size-24" />
+        {lines.map((l, i) => (
+          <li key={`${l.slug}-${i}`} className="flex gap-4 p-4 sm:p-5">
+            <img src={l.image} alt="" className="size-20 shrink-0 rounded-xl bg-surface object-cover sm:size-24" />
             <div className="min-w-0 flex-1">
-              <Link href={`/shop/${l.product.category}/${l.product.slug}`} className="font-medium hover:text-accent">
-                {l.product.name}
+              <Link href={`/shop/${l.category}/${l.slug}`} className="font-medium hover:text-accent">
+                {l.name}
               </Link>
               <p className="mt-0.5 text-sm text-muted">
-                {[l.option, l.colour].filter(Boolean).join(" · ")}
+                {[l.optionLabel, l.colourLabel].filter(Boolean).join(" · ")}
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <label className="text-sm text-muted">
@@ -57,7 +56,7 @@ export default function CartPage() {
                 </button>
               </div>
             </div>
-            <p className="whitespace-nowrap font-mono text-sm text-accent">{formatNGN(l.lineTotal)}</p>
+            <p className="whitespace-nowrap font-mono text-sm text-accent">{formatNGN(lineTotal(l))}</p>
           </li>
         ))}
       </ul>

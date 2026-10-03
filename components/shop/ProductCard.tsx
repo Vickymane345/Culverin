@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Product } from "@/lib/catalog";
+import type { Product } from "@/lib/catalog-types";
 import { formatNGN } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import Card3D from "./Card3D";

@@ -9,7 +9,7 @@ export type WishlistResult = { saved: boolean } | { error: "signin" | "failed" }
 export async function toggleWishlist(category: string, slug: string): Promise<WishlistResult> {
   const user = await getUser();
   if (!user) return { error: "signin" };
-  if (!getProduct(category, slug)) return { error: "failed" };
+  if (!(await getProduct(category, slug))) return { error: "failed" };
 
   const supabase = await createClient();
   const { data: existing } = await supabase

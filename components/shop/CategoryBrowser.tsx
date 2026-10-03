@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import type { Product } from "@/lib/catalog";
+import type { Product } from "@/lib/catalog-types";
 import ProductCard from "./ProductCard";
 import { cn, formatNGN } from "@/lib/utils";
 

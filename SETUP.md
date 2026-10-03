@@ -70,6 +70,33 @@ Without these, everything still works; you just check the admin page instead of 
 
 ---
 
+## 3b. Product photos: Cloudflare R2
+
+Product names, prices and categories live in Supabase (tables `categories`, `products`,
+`product_images`, migration `0004_catalog.sql`). The photos themselves live in Cloudflare R2;
+Supabase only stores each photo's public URL.
+
+1. https://dash.cloudflare.com → **R2 Object Storage** → enable R2 (free tier: 10 GB, no egress fees).
+2. **Create bucket** → name it `culverin-images` → location Automatic.
+3. Open the bucket → **Settings → Public access → R2.dev subdomain → Allow**. Copy the
+   `https://pub-….r2.dev` URL. (Later you can connect a custom domain such as `img.culverin.shop` instead.)
+4. Back on the R2 overview → **Manage R2 API Tokens → Create API token** → permission
+   **Object Read & Write**, limited to that bucket. Copy the Access Key ID and Secret Access Key
+   (shown once). Your Account ID is on the R2 overview page.
+5. In Vercel → Settings → Environment Variables (Production + Preview), add:
+   `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` (`culverin-images`),
+   `R2_PUBLIC_URL` (the r2.dev URL, no trailing slash). Redeploy.
+6. Sign in as admin → **Admin → Products → Move photos to R2**. Click until it says 0 remaining.
+
+New photos uploaded from the admin product page go straight to R2 (resized to WebP in the browser first).
+
+### Keeping Supabase awake
+
+Free Supabase projects pause after a week with no activity. `vercel.json` runs
+`/api/cron/keepalive` once a day, which makes one tiny query. It needs `CRON_SECRET` set in Vercel.
+
+---
+
 ## 4. Deploy on Vercel
 
 1. https://vercel.com → **Add New → Project** → import the `Culverin` GitHub repo.

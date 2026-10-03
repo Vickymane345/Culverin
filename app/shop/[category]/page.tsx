@@ -1,17 +1,11 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  categories,
-  byCategory,
-  brandsIn,
-  getCategory,
-  type CategoryId,
-} from "@/lib/catalog";
+import { brandsIn, getCategories, getCategory, getProductsByCategory } from "@/lib/catalog";
 import CategoryBrowser from "@/components/shop/CategoryBrowser";
 
-export function generateStaticParams() {
-  return categories.map((c) => ({ category: c.id }));
+export async function generateStaticParams() {
+  return (await getCategories()).map((c) => ({ category: c.id }));
 }
 
 export async function generateMetadata({
@@ -20,7 +14,7 @@ export async function generateMetadata({
   params: Promise<{ category: string }>;
 }): Promise<Metadata> {
   const { category } = await params;
-  const cat = getCategory(category);
+  const cat = await getCategory(category);
   if (!cat) return { title: "Shop" };
   return {
     title: `${cat.name} Prices in Nigeria`,
@@ -36,11 +30,11 @@ export default async function CategoryPage({
   params: Promise<{ category: string }>;
 }) {
   const { category } = await params;
-  const cat = getCategory(category);
+  const cat = await getCategory(category);
   if (!cat) notFound();
 
-  const items = byCategory(cat.id as CategoryId);
-  const brands = brandsIn(cat.id as CategoryId);
+  const items = await getProductsByCategory(cat.id);
+  const brands = brandsIn(items);
 
   return (
     <div className="mx-auto max-w-7xl px-5 pb-20 sm:px-6 md:pb-24">

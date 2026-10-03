@@ -15,10 +15,15 @@ import {
 import { OrderStatusBadge, RepairStatusBadge } from "@/components/dashboard/StatusBadge";
 import { formatNGN, cn } from "@/lib/utils";
 import { setOrderStatus, toggleEnquiry, updateRepair } from "./actions";
+import { deleteCategory } from "./catalog-actions";
+import { PRODUCT_SELECT, rowToProduct } from "@/lib/catalog";
+import type { Category } from "@/lib/catalog-types";
+import CategoryForm from "./CategoryForm";
+import MigrateImagesButton from "./MigrateImagesButton";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false, follow: false } };
 
-const tabs = ["orders", "repairs", "enquiries"] as const;
+const tabs = ["orders", "products", "categories", "repairs", "enquiries"] as const;
 type Tab = (typeof tabs)[number];
 
 const when = (d: string) =>
@@ -27,7 +32,11 @@ const when = (d: string) =>
 const select =
   "rounded-lg border border-line bg-white px-2 py-1.5 text-sm outline-none focus:border-accent";
 
-export default async function AdminPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; q?: string; cat?: string; sort?: string }>;
+}) {
   await connection();
   if (!supabaseConfigured) notFound();
   const { profile, supabase } = await requireAccount("/admin");
@@ -41,18 +50,18 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Admin</h1>
-          <p className="mt-1 text-sm text-muted">Orders, repairs and enquiries from the website.</p>
+          <p className="mt-1 text-sm text-muted">Orders, products, repairs and enquiries.</p>
         </div>
         <Link href="/dashboard" className="text-sm text-accent hover:underline">Back to dashboard</Link>
       </div>
 
-      <nav className="mt-6 flex gap-2" aria-label="Admin sections">
+      <nav className="mt-6 flex gap-2 overflow-x-auto" aria-label="Admin sections">
         {tabs.map((t) => (
           <Link
             key={t}
             href={`/admin?tab=${t}`}
             className={cn(
-              "rounded-full px-4 py-2 text-sm capitalize",
+              "shrink-0 rounded-full px-4 py-2 text-sm capitalize",
               tab === t ? "bg-accent text-white" : "text-muted hover:bg-surface"
             )}
           >
@@ -63,6 +72,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
       <div className="mt-6">
         {tab === "orders" && <Orders supabase={supabase} />}
+        {tab === "products" && <Products supabase={supabase} q={sp.q} cat={sp.cat} sort={sp.sort} />}
+        {tab === "categories" && <Categories supabase={supabase} />}
         {tab === "repairs" && <Repairs supabase={supabase} />}
         {tab === "enquiries" && <Enquiries supabase={supabase} />}
       </div>
@@ -220,6 +231,106 @@ async function Enquiries({ supabase }: { supabase: Db }) {
           </div>
           <p className="mt-3 whitespace-pre-line text-sm">{e.message}</p>
         </article>
+      ))}
+    </div>
+  );
+}
+
+async function Products({ supabase, q, cat, sort }: { supabase: Db; q?: string; cat?: string; sort?: string }) {
+  const { data: cats } = await supabase.from("categories").select("id, name").order("position");
+  let query = supabase.from("products").select(PRODUCT_SELECT);
+  if (cat) query = query.eq("category_id", cat);
+  if (q) query = query.ilike("name", `%${q}%`);
+  const order =
+    sort === "price-asc" ? { col: "price", asc: true }
+    : sort === "price-desc" ? { col: "price", asc: false }
+    : sort === "name" ? { col: "name", asc: true }
+    : { col: "position", asc: true };
+  const { data } = await query.order(order.col, { ascending: order.asc }).limit(500);
+  const products = (data ?? []).map((r) => rowToProduct(r as never));
+  const { count: localImages } = await supabase
+    .from("product_images")
+    .select("id", { count: "exact", head: true })
+    .like("image_url", "/%");
+
+  return (
+    <div className="space-y-5">
+      <MigrateImagesButton remaining={localImages ?? 0} />
+
+      <div className="flex flex-wrap items-end gap-3">
+        <form className="flex flex-1 flex-wrap gap-2" action="/admin">
+          <input type="hidden" name="tab" value="products" />
+          <input name="q" defaultValue={q} placeholder="Search products" className={`${select} min-w-0 flex-1`} />
+          <select name="cat" defaultValue={cat ?? ""} className={select} aria-label="Category">
+            <option value="">All categories</option>
+            {(cats ?? []).map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <select name="sort" defaultValue={sort ?? ""} className={select} aria-label="Sort">
+            <option value="">Shop order</option>
+            <option value="name">Name</option>
+            <option value="price-asc">Price: low to high</option>
+            <option value="price-desc">Price: high to low</option>
+          </select>
+          <button type="submit" className="rounded-full border border-line px-4 py-1.5 text-sm">Apply</button>
+        </form>
+        <Link href="/admin/products/new" className="rounded-full bg-accent px-4 py-2 text-sm text-white">+ New product</Link>
+      </div>
+
+      <p className="text-sm text-muted">{products.length} products</p>
+      <ul className="divide-y divide-line rounded-2xl border border-line">
+        {products.map((p) => (
+          <li key={p.id}>
+            <Link href={`/admin/products/${p.id}`} className="flex items-center gap-3 p-3 hover:bg-surface">
+              <img src={p.image} alt="" className="size-12 shrink-0 rounded-lg bg-surface object-cover" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">
+                  {p.name}
+                  {!p.active && <span className="ml-2 rounded-full bg-surface px-2 py-0.5 text-xs text-muted">Hidden</span>}
+                </p>
+                <p className="truncate text-xs text-muted">
+                  {(cats ?? []).find((c) => c.id === p.category)?.name ?? p.category}
+                  {p.options.length > 1 ? ` · ${p.options.length} options` : ""}
+                  {` · ${p.images.length} photo${p.images.length === 1 ? "" : "s"}`}
+                </p>
+              </div>
+              <span className="whitespace-nowrap font-mono text-sm">{formatNGN(p.price)}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+async function Categories({ supabase }: { supabase: Db }) {
+  const { data } = await supabase.from("categories").select("id, name, blurb, image, position").order("position");
+  const categories = (data ?? []) as Category[];
+  const { data: counts } = await supabase.from("products").select("category_id");
+  const countFor = (id: string) => (counts ?? []).filter((r) => r.category_id === id).length;
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-2xl border border-line p-4 sm:p-5">
+        <h2 className="mb-3 font-medium">Add a category</h2>
+        <CategoryForm />
+      </section>
+      {categories.map((c) => (
+        <section key={c.id} className="rounded-2xl border border-line p-4 sm:p-5">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-medium">
+              {c.name} <span className="font-mono text-xs text-muted">/shop/{c.id} · {countFor(c.id)} products</span>
+            </h2>
+            {countFor(c.id) === 0 && (
+              <form action={deleteCategory}>
+                <input type="hidden" name="id" value={c.id} />
+                <button type="submit" className="text-sm text-danger hover:underline">Delete</button>
+              </form>
+            )}
+          </div>
+          <CategoryForm category={c} />
+        </section>
       ))}
     </div>
   );

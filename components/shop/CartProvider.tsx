@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { MAX_QTY, priceCart, type CartLine } from "@/lib/pricing";
+import { MAX_QTY, isValidLine, lineTotal, type CartLine } from "@/lib/pricing";
 
-const KEY = "cqs-cart-v1";
+const KEY = "cqs-cart-v2";
 
 interface CartApi {
   lines: CartLine[];
@@ -28,8 +28,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
       // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from storage once
-      if (raw) setLines(JSON.parse(raw));
+      if (Array.isArray(parsed)) setLines(parsed.filter(isValidLine));
     } catch {}
     setReady(true);
   }, []);
@@ -64,12 +65,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const clear = useCallback(() => setLines([]), []);
 
   const value = useMemo<CartApi>(() => {
-    const priced = priceCart(lines);
     return {
       lines,
       ready,
       count: lines.reduce((n, l) => n + l.quantity, 0),
-      subtotal: priced.reduce((n, l) => n + l.lineTotal, 0),
+      subtotal: lines.reduce((n, l) => n + lineTotal(l), 0),
       add,
       setQuantity,
       remove,

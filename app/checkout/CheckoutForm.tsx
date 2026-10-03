@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useCart } from "@/components/shop/CartProvider";
-import { deliveryFee, NIGERIAN_STATES, priceCart } from "@/lib/pricing";
+import { deliveryFee, lineTotal, NIGERIAN_STATES } from "@/lib/pricing";
 import { formatNGN, cn } from "@/lib/utils";
 import { BANK } from "@/lib/site";
 import { Input, Label, Textarea } from "@/components/ui/input";
@@ -27,10 +27,9 @@ export default function CheckoutForm({
   const [result, action, pending] = useActionState(placeOrder, undefined);
   const [payment, setPayment] = useState<"bank_transfer" | "paystack">("bank_transfer");
 
-  const priced = priceCart(lines);
   const delivery = deliveryFee(state, subtotal);
 
-  if (ready && priced.length === 0) {
+  if (ready && lines.length === 0) {
     return (
       <div className="py-16 text-center">
         <h1 className="text-3xl font-semibold tracking-tight">Nothing to check out</h1>
@@ -100,14 +99,14 @@ export default function CheckoutForm({
         <aside className="h-fit rounded-2xl border border-line bg-surface p-5">
           <h2 className="font-medium">Order summary</h2>
           <ul className="mt-4 space-y-3 text-sm">
-            {priced.map((l, i) => (
+            {lines.map((l, i) => (
               <li key={i} className="flex justify-between gap-3">
                 <span className="min-w-0">
-                  {l.product.name}
+                  {l.name}
                   <span className="text-muted"> × {l.quantity}</span>
-                  {l.option && <span className="block text-xs text-muted">{l.option}</span>}
+                  {l.optionLabel && <span className="block text-xs text-muted">{l.optionLabel}</span>}
                 </span>
-                <span className="whitespace-nowrap font-mono">{formatNGN(l.lineTotal)}</span>
+                <span className="whitespace-nowrap font-mono">{formatNGN(lineTotal(l))}</span>
               </li>
             ))}
           </ul>

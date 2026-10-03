@@ -1,10 +1,4 @@
-import {
-  categories,
-  byCategory,
-  newArrivals,
-  bestValue,
-  products,
-} from "@/lib/catalog";
+import { getCategories, getProducts } from "@/lib/catalog";
 import ProductRail from "@/components/shop/ProductRail";
 import ShopHero from "@/components/shop/ShopHero";
 import CategoryTiles from "@/components/shop/CategoryTiles";
@@ -19,7 +13,11 @@ const promos = [
   { label: "In-house repair lab", detail: "Board level diagnostics" },
 ];
 
-export default function ShopHub() {
+export default async function ShopHub() {
+  const [categories, products] = await Promise.all([getCategories(), getProducts()]);
+  const byCategory = (id: string) => products.filter((p) => p.category === id);
+  const newArrivals = products.filter((p) => p.badge === "New" || p.badge === "Flagship");
+  const bestValue = products.filter((p) => p.badge === "Best value" || p.price < 350000).slice(0, 8);
   const iphones = byCategory("phones").filter((p) => p.brand === "Apple");
   const galaxies = byCategory("phones").filter((p) => p.brand === "Samsung");
   const laptops = byCategory("laptops");
@@ -29,7 +27,7 @@ export default function ShopHub() {
     <div className="mx-auto max-w-7xl px-5 pb-20 sm:px-6 md:pb-24">
       <ShopHero
         productCount={products.length}
-        fromPrice={formatNGN(cheapest.price)}
+        fromPrice={formatNGN(cheapest?.price ?? 0)}
       />
 
       <PromoStrip promos={promos} />
@@ -41,6 +39,7 @@ export default function ShopHub() {
         <CategoryTiles
           tiles={categories.map((c) => {
             const items = byCategory(c.id);
+            if (!items.length) return { ...c, count: 0, from: "Coming soon" };
             return {
               ...c,
               count: items.length,

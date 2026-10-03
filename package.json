@@ -12,6 +12,7 @@
     "images:revert": "node scripts/fetch-images.mjs --revert"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1146.0",
     "@gsap/react": "^2.1.2",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",

@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { categories } from "@/lib/catalog";
+import type { Category } from "@/lib/catalog-types";
 import { cn } from "@/lib/utils";
 
-export default function ShopNav() {
+export default function ShopNav({ categories }: { categories: Pick<Category, "id" | "name">[] }) {
   const pathname = usePathname();
 
   return (

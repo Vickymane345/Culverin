@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { requireAccount } from "@/lib/account";
-import { getCategory, getProduct } from "@/lib/catalog";
+import { getCategories, getProducts } from "@/lib/catalog";
 import { formatNGN } from "@/lib/utils";
 import RemoveFromWishlist from "./RemoveFromWishlist";
 
@@ -14,8 +14,10 @@ export default async function WishlistPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
+  const [all, categories] = await Promise.all([getProducts(), getCategories()]);
+  const getCategory = (id: string) => categories.find((c) => c.id === id);
   const items = (data ?? [])
-    .map((w) => getProduct(w.category, w.product_slug))
+    .map((w) => all.find((p) => p.category === w.category && p.slug === w.product_slug))
     .filter((p) => p !== undefined);
 
   return (

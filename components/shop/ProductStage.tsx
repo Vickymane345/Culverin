@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -13,12 +13,14 @@ gsap.registerPlugin(ScrollTrigger);
  * than a flat photo in a box.
  */
 export default function ProductStage({
-  src,
+  images,
   alt,
 }: {
-  src: string;
+  images: string[];
   alt: string;
 }) {
+  const [active, setActive] = useState(0);
+  const src = images[Math.min(active, images.length - 1)];
   const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const rotX = useRef<((v: number) => void) | null>(null);
@@ -84,6 +86,7 @@ export default function ProductStage({
   }
 
   return (
+    <div>
     <div
       ref={root}
       onPointerMove={onMove}
@@ -107,6 +110,26 @@ export default function ProductStage({
           }}
         />
       </div>
+    </div>
+    {images.length > 1 && (
+      <div className="mt-4 flex gap-3 overflow-x-auto pb-1" role="tablist" aria-label="Product photos">
+        {images.map((img, i) => (
+          <button
+            key={img + i}
+            type="button"
+            role="tab"
+            aria-selected={i === active}
+            aria-label={`Photo ${i + 1}`}
+            onClick={() => setActive(i)}
+            className={`size-16 shrink-0 overflow-hidden rounded-xl border-2 bg-surface transition-colors sm:size-20 ${
+              i === active ? "border-accent" : "border-transparent hover:border-line"
+            }`}
+          >
+            <img src={img} alt="" className="h-full w-full object-cover" />
+          </button>
+        ))}
+      </div>
+    )}
     </div>
   );
 }

@@ -1,51 +1,53 @@
-import { getProduct, type Product } from "./catalog";
+import type { Product } from "./catalog-types";
 
-// Higher storage/capacity tiers cost more. One formula, used by the product
-// page and by the server when it prices an order, so they can never disagree.
+/** Price of the chosen option, or the base price for single-price products. */
 export function priceFor(product: Product, optionIndex: number) {
+  if (!product.options.length) return product.price;
   const i = Math.max(0, Math.min(optionIndex, product.options.length - 1));
-  return product.price + i * Math.round(product.price * 0.12);
+  return product.options[i].price;
 }
 
+/**
+ * One line in the bag. The name, image and price are a snapshot taken when the
+ * item was added, used only for display. Checkout always re-prices every line
+ * from the database on the server, so an edited snapshot changes nothing.
+ */
 export interface CartLine {
   category: string;
   slug: string;
   option: number;
   colour: number;
   quantity: number;
-}
-
-export interface PricedLine {
-  product: Product;
-  option: string | null;
-  colour: string | null;
+  name: string;
+  image: string;
   unitPrice: number;
-  quantity: number;
-  lineTotal: number;
+  optionLabel: string | null;
+  colourLabel: string | null;
 }
 
 export const MAX_QTY = 10;
 
-/** Prices a cart from the catalog. Unknown products are dropped. */
-export function priceCart(lines: CartLine[]): PricedLine[] {
-  const out: PricedLine[] = [];
-  for (const l of lines) {
-    const product = getProduct(String(l.category), String(l.slug));
-    if (!product) continue;
-    const quantity = Math.max(1, Math.min(MAX_QTY, Math.floor(Number(l.quantity) || 1)));
-    const optionIndex = Math.max(0, Math.floor(Number(l.option) || 0));
-    const colourIndex = Math.max(0, Math.floor(Number(l.colour) || 0));
-    const unitPrice = priceFor(product, optionIndex);
-    out.push({
-      product,
-      option: product.options[optionIndex] ?? product.options[0] ?? null,
-      colour: product.colours[colourIndex] ?? product.colours[0] ?? null,
-      unitPrice,
-      quantity,
-      lineTotal: unitPrice * quantity,
-    });
-  }
-  return out;
+export function cartLineFor(product: Product, option: number, colour: number): Omit<CartLine, "quantity"> {
+  return {
+    category: product.category,
+    slug: product.slug,
+    option,
+    colour,
+    name: product.name,
+    image: product.image,
+    unitPrice: priceFor(product, option),
+    optionLabel: product.options[option]?.label ?? null,
+    colourLabel: product.colours[colour] ?? null,
+  };
+}
+
+export function isValidLine(l: unknown): l is CartLine {
+  const x = l as CartLine;
+  return Boolean(x && typeof x.slug === "string" && typeof x.name === "string" && typeof x.unitPrice === "number");
+}
+
+export function lineTotal(l: CartLine) {
+  return l.unitPrice * l.quantity;
 }
 
 // Delivery fees in NGN. Adjust to match your courier rates.

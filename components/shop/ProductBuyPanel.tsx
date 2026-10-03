@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Product } from "@/lib/catalog";
-import { priceFor } from "@/lib/pricing";
+import type { Product } from "@/lib/catalog-types";
+import { cartLineFor, priceFor } from "@/lib/pricing";
 import { cn, formatNGN } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/shop/CartProvider";
@@ -17,7 +17,7 @@ export default function ProductBuyPanel({ product }: { product: Product }) {
   const { add } = useCart();
   const router = useRouter();
 
-  const line = { category: product.category, slug: product.slug, option, colour };
+  const line = cartLineFor(product, option, colour);
 
   const price = priceFor(product, option);
 
@@ -38,7 +38,7 @@ export default function ProductBuyPanel({ product }: { product: Product }) {
           <div className="mt-4 flex flex-wrap gap-3">
             {product.options.map((o, i) => (
               <button
-                key={o}
+                key={o.label}
                 type="button"
                 onClick={() => setOption(i)}
                 aria-pressed={option === i}
@@ -49,7 +49,7 @@ export default function ProductBuyPanel({ product }: { product: Product }) {
                     : "border-line hover:border-accent/50"
                 )}
               >
-                <span className="block text-sm font-medium">{o}</span>
+                <span className="block text-sm font-medium">{o.label}</span>
                 <span className="block font-mono text-xs text-muted">
                   {formatNGN(priceFor(product, i))}
                 </span>

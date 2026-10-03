@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { getUser, createServiceClient } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/config";
-import { deliveryFee, NIGERIAN_STATES, priceCart, type CartLine } from "@/lib/pricing";
+import { deliveryFee, NIGERIAN_STATES, type CartLine } from "@/lib/pricing";
+import { priceCart } from "@/lib/pricing-server";
 import { initializeTransaction, paystackConfigured } from "@/lib/paystack";
 import { makeReference } from "@/lib/reference";
 import { notifyOrder } from "@/lib/orders";
@@ -37,7 +38,7 @@ export async function placeOrder(_: CheckoutState, formData: FormData): Promise<
     lines = JSON.parse(get("cart"));
   } catch {}
   if (!Array.isArray(lines)) lines = [];
-  const priced = priceCart(lines.slice(0, 50));
+  const priced = await priceCart(lines.slice(0, 50));
   if (priced.length === 0) return { error: "Your bag is empty." };
 
   // Prices come from the catalog on the server, never from the browser.

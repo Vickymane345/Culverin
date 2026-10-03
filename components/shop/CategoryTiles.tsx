@@ -5,7 +5,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import type { Category } from "@/lib/catalog";
+import type { Category } from "@/lib/catalog-types";
 
 gsap.registerPlugin(ScrollTrigger);
 
