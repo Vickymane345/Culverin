@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { getUser, createClient } from "@/lib/supabase/server";
 import CheckoutForm, { type Prefill } from "./CheckoutForm";
+import { paystackConfigured } from "@/lib/paystack";
 
 export default async function CheckoutPage() {
   await connection();
@@ -24,5 +25,5 @@ export default async function CheckoutPage() {
     };
   }
 
-  return <CheckoutForm prefill={prefill} signedIn={Boolean(user)} />;
+  return <CheckoutForm prefill={prefill} signedIn={Boolean(user)} paystackEnabled={paystackConfigured()} />;
 }

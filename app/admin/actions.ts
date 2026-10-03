@@ -15,7 +15,10 @@ export async function setOrderStatus(formData: FormData) {
   const id = String(formData.get("id"));
   const status = String(formData.get("status")) as OrderStatus;
   if (!ORDER_STATUSES.includes(status)) return;
-  await supabase.from("orders").update({ status }).eq("id", id);
+  const update: { status: OrderStatus; paid_at?: string } = { status };
+  // Marking a bank-transfer order paid records when the money was confirmed.
+  if (status === "paid") update.paid_at = new Date().toISOString();
+  await supabase.from("orders").update(update).eq("id", id);
   revalidatePath("/admin");
 }
 

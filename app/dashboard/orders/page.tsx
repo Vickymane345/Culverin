@@ -43,6 +43,14 @@ export default async function OrdersPage() {
             <OrderStatusBadge status={o.status} />
           </CardHeader>
           <CardContent>
+            {o.status === "pending_payment" && o.payment_method === "bank_transfer" && (
+              <p className="mb-3 rounded-xl bg-surface px-4 py-3 text-sm">
+                Waiting for your transfer.{" "}
+                <Link href={`/checkout/transfer?reference=${o.reference}`} className="text-accent hover:underline">
+                  See payment details
+                </Link>
+              </p>
+            )}
             <ul className="divide-y divide-line text-sm">
               {(o.order_items ?? []).map((i) => (
                 <li key={i.id} className="flex justify-between gap-4 py-2.5">

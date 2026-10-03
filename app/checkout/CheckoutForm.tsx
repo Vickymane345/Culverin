@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useCart } from "@/components/shop/CartProvider";
 import { deliveryFee, NIGERIAN_STATES, priceCart } from "@/lib/pricing";
-import { formatNGN } from "@/lib/utils";
+import { formatNGN, cn } from "@/lib/utils";
+import { BANK } from "@/lib/site";
 import { Input, Label, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormMessage } from "@/components/ui/form-message";
@@ -12,10 +13,19 @@ import { placeOrder } from "./actions";
 
 export type Prefill = Partial<Record<"fullName" | "email" | "phone" | "address" | "city" | "state", string>>;
 
-export default function CheckoutForm({ prefill, signedIn }: { prefill: Prefill; signedIn: boolean }) {
+export default function CheckoutForm({
+  prefill,
+  signedIn,
+  paystackEnabled,
+}: {
+  prefill: Prefill;
+  signedIn: boolean;
+  paystackEnabled: boolean;
+}) {
   const { lines, ready, subtotal } = useCart();
   const [state, setState] = useState(prefill.state || "Lagos");
   const [result, action, pending] = useActionState(placeOrder, undefined);
+  const [payment, setPayment] = useState<"bank_transfer" | "paystack">("bank_transfer");
 
   const priced = priceCart(lines);
   const delivery = deliveryFee(state, subtotal);
@@ -106,10 +116,43 @@ export default function CheckoutForm({ prefill, signedIn }: { prefill: Prefill; 
             <div className="flex justify-between"><dt className="text-muted">Delivery</dt><dd className="font-mono">{delivery === 0 ? "Free" : formatNGN(delivery)}</dd></div>
             <div className="flex justify-between text-base font-medium"><dt>Total</dt><dd className="font-mono text-accent">{formatNGN(subtotal + delivery)}</dd></div>
           </dl>
+          <fieldset className="mt-5 space-y-2 border-t border-line pt-4">
+            <legend className="mb-2 text-sm font-medium">Payment</legend>
+            {(
+              [
+                ["bank_transfer", "Bank transfer", `${BANK.bankName}, account ${BANK.accountNumber}. Details shown after you place the order.`],
+                ...(paystackEnabled ? [["paystack", "Card, USSD or transfer via Paystack", "Pay instantly online."]] : []),
+              ] as Array<["bank_transfer" | "paystack", string, string]>
+            ).map(([value, label, hint]) => (
+              <label
+                key={value}
+                className={cn(
+                  "flex cursor-pointer gap-3 rounded-xl border bg-white p-3 text-sm",
+                  payment === value ? "border-accent" : "border-line"
+                )}
+              >
+                <input
+                  type="radio"
+                  name="payment"
+                  value={value}
+                  checked={payment === value}
+                  onChange={() => setPayment(value)}
+                  className="mt-0.5 accent-[#0066cc]"
+                />
+                <span>
+                  <span className="block font-medium">{label}</span>
+                  <span className="block text-xs text-muted">{hint}</span>
+                </span>
+              </label>
+            ))}
+          </fieldset>
           <Button type="submit" disabled={pending || !ready} className="mt-5 w-full py-3.5">
-            {pending ? "Connecting to Paystack…" : "Pay securely with Paystack"}
+            {pending
+              ? "Placing order…"
+              : payment === "paystack"
+                ? "Pay with Paystack"
+                : "Place order"}
           </Button>
-          <p className="mt-3 text-center text-xs text-muted">Card, bank transfer and USSD accepted.</p>
         </aside>
       </form>
     </div>

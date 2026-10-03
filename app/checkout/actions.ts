@@ -6,13 +6,14 @@ import { supabaseConfigured } from "@/lib/supabase/config";
 import { deliveryFee, NIGERIAN_STATES, priceCart, type CartLine } from "@/lib/pricing";
 import { initializeTransaction, paystackConfigured } from "@/lib/paystack";
 import { makeReference } from "@/lib/reference";
+import { notifyOrder } from "@/lib/orders";
 import { SITE_URL } from "@/lib/site";
 
 export type CheckoutState = { error?: string } | undefined;
 
 export async function placeOrder(_: CheckoutState, formData: FormData): Promise<CheckoutState> {
-  if (!supabaseConfigured || !paystackConfigured()) {
-    return { error: "Online payment is not switched on yet. Please contact us to complete your order." };
+  if (!supabaseConfigured) {
+    return { error: "Online ordering is not switched on yet. Please contact us to complete your order." };
   }
 
   const get = (k: string) => String(formData.get(k) ?? "").trim();
@@ -23,6 +24,9 @@ export async function placeOrder(_: CheckoutState, formData: FormData): Promise<
   const city = get("city");
   const state = get("state");
   const notes = get("notes").slice(0, 500);
+  // Bank transfer is always available; Paystack only once its key is set.
+  const paymentMethod =
+    get("payment") === "paystack" && paystackConfigured() ? "paystack" : "bank_transfer";
 
   if (!fullName || !phone || !address || !city) return { error: "Please fill in your name, phone and delivery address." };
   if (!/^\S+@\S+\.\S+$/.test(email)) return { error: "Please enter a valid email address." };
@@ -60,6 +64,7 @@ export async function placeOrder(_: CheckoutState, formData: FormData): Promise<
       subtotal,
       delivery_fee: delivery,
       total,
+      payment_method: paymentMethod,
     })
     .select("id")
     .single();
@@ -89,6 +94,11 @@ export async function placeOrder(_: CheckoutState, formData: FormData): Promise<
       .from("profiles")
       .update({ phone, address, city, state, full_name: fullName })
       .eq("id", user.id);
+  }
+
+  if (paymentMethod === "bank_transfer") {
+    await notifyOrder(order.id, "transfer");
+    redirect(`/checkout/transfer?reference=${encodeURIComponent(reference)}`);
   }
 
   const payment = await initializeTransaction({

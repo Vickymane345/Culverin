@@ -22,7 +22,12 @@ export default function TermsPage() {
         full if you do not want to continue.
       </p>
       <h2>Payment</h2>
-      <p>Payments are processed by Paystack. We never see or store your card details.</p>
+      <p>
+        You can pay by bank transfer to our account, shown at checkout, using your order reference as the
+        narration. We hold the order once it is placed and confirm it when the transfer arrives; unpaid orders
+        may be cancelled after 48 hours. Card payments, where offered, are processed by Paystack and we never see
+        or store your card details.
+      </p>
       <h2>Delivery, returns and warranty</h2>
       <p>
         See our <Link href="/returns" className="text-accent hover:underline">delivery and returns policy</Link>.

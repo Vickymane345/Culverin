@@ -76,11 +76,12 @@ async function Orders({ supabase }: { supabase: Db }) {
   const { data } = await supabase
     .from("orders")
     .select("*, order_items(*)")
-    .neq("status", "pending_payment")
+    // Unpaid Paystack orders are abandoned checkouts; unpaid transfers are real orders waiting for money.
+    .or("status.neq.pending_payment,payment_method.eq.bank_transfer")
     .order("created_at", { ascending: false })
     .limit(200);
   const orders = (data ?? []) as OrderRow[];
-  if (orders.length === 0) return <p className="text-muted">No paid orders yet.</p>;
+  if (orders.length === 0) return <p className="text-muted">No orders yet.</p>;
 
   return (
     <div className="space-y-4">
@@ -89,7 +90,9 @@ async function Orders({ supabase }: { supabase: Db }) {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="font-mono text-sm">{o.reference}</p>
-              <p className="text-xs text-muted">{when(o.created_at)}</p>
+              <p className="text-xs text-muted">
+                {when(o.created_at)} · {o.payment_method === "bank_transfer" ? "Bank transfer" : "Paystack"}
+              </p>
             </div>
             <OrderStatusBadge status={o.status} />
           </div>
@@ -128,6 +131,11 @@ async function Orders({ supabase }: { supabase: Db }) {
               ))}
             </select>
             <button type="submit" className="rounded-full bg-accent px-4 py-1.5 text-sm text-white">Update</button>
+            {o.status === "pending_payment" && o.payment_method === "bank_transfer" && (
+              <span className="text-xs text-muted">
+                Check UBA for {formatNGN(o.total)} with reference {o.reference}, then set Paid.
+              </span>
+            )}
           </form>
         </article>
       ))}
