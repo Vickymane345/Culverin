@@ -11,6 +11,7 @@ Start from `.env.example`.
 
 1. Create a free project at https://supabase.com (region: closest to Nigeria, e.g. `eu-west`).
 2. **SQL Editor → New query**, paste all of `supabase/migrations/0001_init.sql`, click **Run**.
+   Then do the same with `0002_harden_functions.sql`.
 3. **Project Settings → API**, copy into your env:
    - `NEXT_PUBLIC_SUPABASE_URL` (Project URL)
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (anon / publishable key)
